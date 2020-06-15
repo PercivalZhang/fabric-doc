@@ -10,7 +10,7 @@
 docker ps
 ```
 结果如下图所示：
-![截屏2020-06-11 下午6.37.38.png](http://note.youdao.com/yws/res/3389/WEBRESOURCE1e7c483d0987a5ee64c20250aa383cd5)
+![image](https://github.com/PercivalZhang/fabric-doc/blob/master/resource/docker-ps.png)
 
 从上图中提取的主要docker容器应用信息如下表所示：
 
