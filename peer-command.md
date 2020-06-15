@@ -27,6 +27,10 @@ a22e2e5a5e51 | peer1.org1.example.com | 组织1节点1
 ### 2.1 交互原理介绍
 与测试网络的交互发生在客户端client和网络中的某个节点(peer/orderer)之间. 交互示意图如下所示：
 
+![image](https://github.com/PercivalZhang/fabric-doc/blob/master/resource/client-peer.png)
+
+**Graph code **:
+
 ```
 graph LR
 subgraph 客户端cli
@@ -250,6 +254,10 @@ Name: mycc, Version: 1.0, Path: /opt/gopath/src/github.com/chaincode/chaincode_e
 ### 2.5 chaincode链码/合约交互命令
 
 客户端通过peer chaincode 命令与peer和orderer进行合约交互示意图如下：
+
+![image](https://github.com/PercivalZhang/fabric-doc/blob/master/resource/peer-chaincode.png)
+
+**Graph code**:
 ```
 graph LR
     subgraph peer
