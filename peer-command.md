@@ -29,7 +29,7 @@ a22e2e5a5e51 | peer1.org1.example.com | 组织1节点1
 
 ![image](https://github.com/PercivalZhang/fabric-doc/blob/master/resource/client-peer.png)
 
-**Graph code **:
+**Graph code**:
 
 ```
 graph LR
