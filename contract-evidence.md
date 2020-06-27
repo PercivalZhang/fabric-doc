@@ -29,3 +29,85 @@ Fabric官方提供了两种开发node.js链码的途径：
 > fabric-shim是较底层的链码开发包，它封装了与节点通信的grpc协议。它直接把链码接口暴露给开发者，虽然简单直白，但如果要实现相对复杂一点的链码，开发者需要自己在Invoke实现中进行方法路由。
 - fabric-contract-api。
 > fabric-contract-api则是更高层级的封装，开发者直接继承开发包提供的Contract类，就不用费心合约方法路由的问题了。
+
+本示例Demo采用fabric-contract-api框架编写。如果对fabric-contract-api感兴趣，可以[点击查看详细信息](https://www.npmjs.com/package/fabric-contract-api)。
+
+### 合约
+合约的源代码目录如下：
+```
+src
+- depository.ts
+- index.ts
+```
+- depository.ts 合约文件
+> 合约逻辑实现代码
+- index.ts 合约注册表文件
+> 合约导出注册
+
+为了使得合约能够可运行，必须安装fabric-shim模块，因此一定要在package.json文件中，添加fabric-shim到依赖列表并添加start命令到scripts列表，具体内容如下：
+```
+"scripts": {  
+  "start": "fabric-chaincode-node start"  
+},
+"dependencies": {  
+  "fabric-contract-api": "^2.0.0",  
+  "fabric-shim": "^2.1.2",  
+  "winston": "^3.2.1"  
+},
+```
+
+### 存证合约基本结构
+使用fabric-contract-api的合约代码，除了构造函数之外的每个方法都自动称为链码的方法，可供外部应用调用 。
+
+一个典型的使用fabric-contract-api框架编写的合约代码的基本结构如下：
+```typescript
+// 引用相应的模块
+import { Contract, Context } from 'fabric-contract-api'  
+// 继承Contract类  
+export class Depository extends Contract {  
+  // 构造函数
+  constructor() {
+	  super('Depository');  
+  }    
+  /* 注解@Transaction()：标明该接口是一个写入数据的接口
+   * Context交易上下文：逻辑代码的关键
+   * param：接口参数，一个或者多个
+   */
+  @Transaction()
+  async add(ctx: Context, param: string) {  
+	  ...
+  }  
+   /* 注解@Transaction(false)：标明该接口是一个查询的只读的接口
+   * Context交易上下文：逻辑代码的关键
+   * param：接口参数，一个或者多个
+   */
+  @Transaction(false)
+  async query(ctx: Context, param: string) {       
+	  ...   
+  }  
+}
+```
+上面的合约示例定义了两个接口：
+- add：写入数据
+- query：查询数据
+
+### 如何写入数据
+接下来展示如何向区块链写入一条数据。仍然以上面的代码为例，对接口add进行如下拓展：
+```typescript
+@Transaction()
+async add(ctx: Context, param: string) { 
+  // 获取该交易的交易ID 
+  const txId = ctx.stub.getTxID(); 
+  
+  // 用交易ID做key，将输入字符串转换为Buffer后，写入到状态数据库 
+  await ctx.stub.putState(txId, Buffer.from(param));  
+  
+  // 返回交易ID 
+  return txId;
+}
+```
+> 链存储的就是各种状态，状态state是一个key-value数据库。key值是字符串类型，具备唯一性；value存储Buffer类型的数据。
+> 
+> 在本例子中，我使用了交易ID作为key，将输入的param字符串Buffer写入到状态数据库。
+> 
+> 通常为了查询方便，我们会将key值返回。
