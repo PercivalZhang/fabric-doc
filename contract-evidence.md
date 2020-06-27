@@ -67,7 +67,7 @@ import { Contract, Context } from 'fabric-contract-api'
 export class Depository extends Contract {  
   // 构造函数
   constructor() {
-	  super('Depository');  
+    super('Depository');  
   }    
   /* 注解@Transaction()：标明该接口是一个写入数据的接口
    * Context交易上下文：逻辑代码的关键
@@ -75,7 +75,7 @@ export class Depository extends Contract {
    */
   @Transaction()
   async add(ctx: Context, param: string) {  
-	  ...
+    ...
   }  
    /* 注解@Transaction(false)：标明该接口是一个查询的只读的接口
    * Context交易上下文：逻辑代码的关键
@@ -83,7 +83,7 @@ export class Depository extends Contract {
    */
   @Transaction(false)
   async query(ctx: Context, param: string) {       
-	  ...   
+    ...   
   }  
 }
 ```
@@ -108,6 +108,28 @@ async add(ctx: Context, param: string) {
 ```
 > 链存储的就是各种状态，状态state是一个key-value数据库。key值是字符串类型，具备唯一性；value存储Buffer类型的数据。
 > 
-> 在本例子中，我使用了交易ID作为key，将输入的param字符串Buffer写入到状态数据库。
+> 在本例子中，通过调用putState()，使用了交易ID作为key，将输入的param字符串Buffer写入到状态数据库。
 > 
 > 通常为了查询方便，我们会将key值返回。
+
+### 如何读取数据
+接下来展示如何从区块链读取一条数据。仍然以上面的代码为例，对接口quey进行如下拓展：
+```typescript
+@Transaction(false)
+async query(ctx: Context, param: string) {      
+    // 调用getState(), 传入key值，查询对应的状态 
+  const stateAsBytes = await ctx.stub.getState(param);  
+  // 判断查询的结果是否为空，或者长度为0
+  // 返回消息，提示与key对应的状态不存在
+  if (!stateAsBytes || stateAsBytes.byteLength === 0) {  
+      console.log(`State with key ${param} does not exist.`);
+      return `state with key ${param} does not exist.`;
+  } else {  
+    // 否则，与key对应的状态存在，将Buffer转换为字符串返回
+    return stateAsBytes.toString();  
+  }
+}  
+```
+> 在本例子中，通过调用getState()，传入输入参数param作为key，查询对应的状态。
+>
+>可以将add接口返回的交易ID，作为输入参数传入query接口，进行状态查询。
