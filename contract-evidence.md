@@ -91,14 +91,40 @@ export class Depository extends Contract {
 - add：写入数据
 - query：查询数据
 
+### Transaction Context交易上下文
+
+交易上下文执行两个功能：
+- 允许开发者定义和维护一个智能合约内横跨交易调用周期的用户变量
+- 提供丰富的api，允许开发者执行交易相关的操作
+  * 查询账本
+  * 更新账本
+  * 获取交易提交者的数字身份信息
+
+交易上下文context提供了2个内嵌的元素，这两个元素给开发者提供了丰富的API：
+- ctx.stub
+> putState(): 写入状态   
+> getState(): 读取状态   
+> getTxID(): 获取当前交易ID
+- ctx.clientIdentity
+> 获取交易提交者的数字身份，用于接口级别的精确权限控制
+
+在下面的示例中，将展示如何通过交易上下文进行账本状态查询/更新账本状态/获取数字身份。
+
 ### 如何写入数据
 接下来展示如何向区块链写入一条数据。仍然以上面的代码为例，对接口add进行如下拓展：
 ```typescript
 @Transaction()
 async add(ctx: Context, param: string) { 
-  // 获取该交易的交易ID 
+  // 调用交易上下文ctx.clientIdentity,获取交易提交者的数字身份
+  const cid = ctx.clientIdentity;
+  
+  // 调用数字身份的getAttributeValue(), 获取数字身份中的各种属性值
+  const cidAttrValue = cid.getAttributeValue('customizedRole');
+            
+  // 调用交易上下文ctx.stub.getTxID(),获取当前交易的交易ID 
   const txId = ctx.stub.getTxID(); 
   
+  // 交易上下文ctx.stub.putState()
   // 用交易ID做key，将输入字符串转换为Buffer后，写入到状态数据库 
   await ctx.stub.putState(txId, Buffer.from(param));  
   
@@ -117,7 +143,7 @@ async add(ctx: Context, param: string) {
 ```typescript
 @Transaction(false)
 async query(ctx: Context, param: string) {      
-    // 调用getState(), 传入key值，查询对应的状态 
+  // 调用交易上下文ctx.getState(), 传入key值，查询对应的状态 
   const stateAsBytes = await ctx.stub.getState(param);  
   // 判断查询的结果是否为空，或者长度为0
   // 返回消息，提示与key对应的状态不存在
