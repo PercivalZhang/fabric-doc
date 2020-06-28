@@ -1,0 +1,53 @@
+{
+  "name": "depository",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prebuild": "rm -rf build",
+    "build": "tsc",
+    "postbuild": "rm -rf release",
+    "prerelease": "mkdir release",
+    "release": "cp -f build/*.js ./package.json release",
+    "dev": "tsc --watch",
+    "lint": "eslint ../..",
+    "pretest": "npm run lint",
+    "test": "./node_modules/.bin/nyc mocha --recursive",
+    "start": "fabric-chaincode-node start"
+  },
+  "nyc": {
+    "exclude": [
+      "coverage/**",
+      "test/**"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "all": true,
+    "check-coverage": true,
+    "statements": 100,
+    "branches": 100,
+    "functions": 100,
+    "lines": 100
+  },
+  "dependencies": {
+    "fabric-contract-api": "^2.0.0",
+    "fabric-shim": "^2.1.2",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.5",
+    "chai": "^4.2.0",
+    "mocha": "^7.1.1",
+    "nyc": "^15.0.0",
+    "prettier": "^1.19.1",
+    "sinon": "^9.0.1",
+    "sinon-chai": "^3.5.0",
+    "ts-loader": "^6.1.1",
+    "ts-node": "^8.4.1",
+    "tsconfig-paths": "^3.9.0",
+    "tslint": "^5.20.0",
+    "typescript": "^3.6.3"
+  }
+}
