@@ -100,6 +100,14 @@ export class Depository extends Contract {
   * 更新账本
   * 获取交易提交者的数字身份信息
 
+交易上下文context提供了2个内嵌的元素，这两个元素给开发者提供了丰富的API：
+- ctx.stub
+> putState(): 写入状态   getState(): 读取状态   getTxID(): 获取当前交易ID
+- ctx.clientIdentity
+> 获取交易提交者的数字身份
+
+在下面的示例中，将展示如何通过交易上下文进行账本状态查询/更新账本状态/获取数字身份。
+
 ### 如何写入数据
 接下来展示如何向区块链写入一条数据。仍然以上面的代码为例，对接口add进行如下拓展：
 ```typescript
@@ -107,7 +115,7 @@ export class Depository extends Contract {
 async add(ctx: Context, param: string) { 
   // 获取该交易的交易ID 
   const txId = ctx.stub.getTxID(); 
-  
+  // 
   // 用交易ID做key，将输入字符串转换为Buffer后，写入到状态数据库 
   await ctx.stub.putState(txId, Buffer.from(param));  
   
