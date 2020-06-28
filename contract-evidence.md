@@ -159,3 +159,8 @@ async query(ctx: Context, param: string) {
 > 在本例子中，通过调用getState()，传入输入参数param作为key，查询对应的状态。
 >
 >可以将add接口返回的交易ID，作为输入参数传入query接口，进行状态查询。
+
+## 完整存证合约Demo
+
+
+[点击查看完整Demo](https://github.com/PercivalZhang/fabric-doc/tree/master/depository-demo)
