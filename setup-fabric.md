@@ -32,10 +32,6 @@ cd ~/fabric
 git clone https://github.com/hyperledger/fabric-samples.git 
 ```
 
-执行完毕后，如下图所示则标志clone完成：
-
-![截屏2020-06-10 下午5.57.59.png](http://note.youdao.com/yws/res/3108/WEBRESOURCEfb16990d01e60a11c47458d8d1911aeb)
-
 ### 2. 检出相应版本的分支代码
 git clone默认检出master主分支，由于我们选取的fabric版本是1.4.4，所以我们需要检出对应分支：**release-1.4**。
 
@@ -59,7 +55,10 @@ git branch
 ```
 成功如下图所示：
 
-![截屏2020-06-10 下午6.24.28.png](http://note.youdao.com/yws/res/3131/WEBRESOURCEea1ae4befeb9cae18fbbb8ac54248b54)
+```
+  master
+* release-1.4
+```
 
 ### 3. 安装Fabric
 
