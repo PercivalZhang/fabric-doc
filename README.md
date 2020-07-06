@@ -11,4 +11,4 @@
 
 ## depository-demo
 
-存证Demo代码库
+查看[存证Demo代码库](https://github.com/PercivalZhang/fabric-doc/tree/master/depository-demo)
