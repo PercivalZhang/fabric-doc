@@ -10,7 +10,7 @@ ubuntu
 阅读[1.4环境搭建文档](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html)
 
 ## 详细步骤
-操作根目录：/mnt/fabric
+操作根目录：~/fabric
 
 项目github地址：https://github.com/hyperledger/fabric-samples
 
@@ -26,7 +26,7 @@ apt install git
 1.2 代码克隆
 ```
 # 进入操作目录
-cd /mnt/fabric
+cd ~/fabric
 
 # clone git repo
 git clone https://github.com/hyperledger/fabric-samples.git 
@@ -42,7 +42,7 @@ git clone默认检出master主分支，由于我们选取的fabric版本是1.4.4
 #### 2.1 查看当前分支
 ```
 # 进入代码根目录
-cd /mnt/fabric/fabric-samples
+cd ~/fabric/fabric-samples
 
 # 查看当前分支, 默认master
 git branch
@@ -114,7 +114,7 @@ curl -sSL http://bit.ly/2ysbOFE | bash -s -- 1.4.7 1.4.7 0.4.20
 #### 3.3 bootstrap.sh脚本
 该脚本将完成与curl命令相同的事情，仅适用于curl命令失败的情况。
 ```
-cd /mnt/fabric
+cd ~/fabric
 
 vim bootstrap.sh
 
@@ -130,7 +130,7 @@ chmod u+x bootstrap.sh
 ```
 
 耐心等待整个下载任务完成。
-下载完成后，运行如下命令查看一下当前目录：*/mnt/fabric*
+下载完成后，运行如下命令查看一下当前目录：*~/fabric*
 ```
 ls
 ```
@@ -139,7 +139,7 @@ ls
 ![截屏2020-06-12 上午10.46.33.png](http://note.youdao.com/yws/res/3452/WEBRESOURCE03ce15b675479308c0f38dc35fd2f509)
 
 #### 3.4 安装收尾
-安装结束后，以下二进制程序将被安装bin目录（/mnt/fabric/bin）下：
+安装结束后，以下二进制程序将被安装bin目录（~/fabric/bin）下：
 * configtxgen,
 * configtxlator,
 * cryptogen,
@@ -161,7 +161,7 @@ vim ~/.bashrc
 ```
 在文件最末尾添加一行：
 ```
-export PATH="$PATH:/mnt/fabric/bin"
+export PATH="$PATH:~/fabric/bin"
 ```
 保存退出。
 
@@ -171,7 +171,7 @@ export PATH="$PATH:/mnt/fabric/bin"
 source ~/.bashrc
 ```
 
-检查PATH，确认修改成功(/mnt/fabric/bin将出现在PATH变量值的末尾)。
+检查PATH，确认修改成功(~/fabric/bin将出现在PATH变量值的末尾)。
 ```
 echo $PATH
 ```
