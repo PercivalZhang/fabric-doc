@@ -30,61 +30,74 @@ Fabric官方提供了两种开发node.js链码的途径：
 - fabric-contract-api。
 > fabric-contract-api则是更高层级的封装，开发者直接继承开发包提供的Contract类，就不用费心合约方法路由的问题了。
 
-本示例Demo采用fabric-contract-api框架编写。如果对fabric-contract-api感兴趣，可以[点击查看详细信息](https://www.npmjs.com/package/fabric-contract-api)。
+本示例Demo采用fabric-shim框架编写。如果对fabric-contract-api感兴趣，可以[点击查看详细信息](https://www.npmjs.com/package/fabric-contract-api)。
 
 ### 合约
 合约的源代码目录如下：
 ```
 src
-- depository.ts
-- index.ts
+- chaincode.ts
 ```
-- depository.ts 合约文件
+- chaincode.ts 合约文件
 > 合约逻辑实现代码
-- index.ts 合约注册表文件
-> 合约导出注册
 
 为了使得合约能够可运行，必须安装fabric-shim模块，因此一定要在package.json文件中，添加fabric-shim到依赖列表并添加start命令到scripts列表，具体内容如下：
 ```
 "scripts": {  
-  "start": "fabric-chaincode-node start"  
+  "start": "node chaincode.js"  
 },
 "dependencies": {  
-    "fabric-contract-api": "^2.0.0",
     "fabric-shim": "^2.0.0"
 },
 ```
 
 ### 存证合约基本结构
-使用fabric-contract-api的合约代码，除了构造函数之外的每个方法都自动称为链码的方法，可供外部应用调用 。
 
-一个典型的使用fabric-contract-api框架编写的合约代码的基本结构如下：
+一个典型的使用fabric-shim框架编写的合约代码的基本结构如下：
 ```typescript
 // 引用相应的模块
-import { Contract, Context } from 'fabric-contract-api'  
-// 继承Contract类  
-export class Depository extends Contract {  
-  // 构造函数
-  constructor() {
-    super('Depository');  
-  }    
-  /* 注解@Transaction()：标明该接口是一个写入数据的接口
-   * Context交易上下文：逻辑代码的关键
-   * param：接口参数，一个或者多个
-   */
-  @Transaction()
-  async add(ctx: Context, param: string) {  
-    ...
-  }  
-   /* 注解@Transaction(false)：标明该接口是一个查询的只读的接口
-   * Context交易上下文：逻辑代码的关键
-   * param：接口参数，一个或者多个
-   */
-  @Transaction(false)
-  async query(ctx: Context, param: string) {       
-    ...   
-  }  
+import * as shim from 'fabric-shim';
+
+export class Depository {
+    // 链码初始化
+    async Init(stub) {
+        console.info('========= Init =========');
+        const ret = stub.getFunctionAndParameters();
+        console.info(ret);
+        return shim.success(Buffer.from('Initialized Successfully!'));
+    }
+    // 接口方法路由转发
+    async Invoke(stub) {
+        // 获取该类的所有方法和参数
+        const ret = stub.getFunctionAndParameters();
+        console.info(ret);
+        const method = this[ret.fcn];
+        // 目标方法不存在
+        if (!method) {
+            console.log('no method of name:' + ret.fcn + ' found');
+            return shim.success();
+        }
+        console.log(`call method::${ret.fcn}: ${ret.params}`);
+        try {
+            // 调用目标方法
+            const payload = await method(stub, ret.params);
+            return shim.success(payload);
+        } catch (err) {
+            console.error(err);
+            return shim.error(err);
+        }
+    }
+
+    async add(stub, args): Promise<Buffer> {
+
+    }
+
+    async query(stub, args): Promise<Buffer> {
+
+    }
 }
+
+shim.start(new Depository());
 ```
 上面的合约示例定义了两个接口：
 - add：写入数据
