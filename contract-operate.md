@@ -1,4 +1,4 @@
-## 进入命令行客户端
+## 1. 进入命令行客户端
 > 与链交互必须通过客户端进行，每个客户端都会关联一个用户身份。
 
 > cli客户端关联组织org1.example的用户Admin
@@ -9,43 +9,55 @@ docker exec -it cli bash
 ```
 运行成功后，进入客户端console，提示符如下/opt/gopath/src/github.com/hyperledger/fabric/peer#
 
-## 设置必要的环境变量
+## 2. 设置必要的环境变量
 
 ```
 export CHANNEL_NAME=mychannel # 设置通道名称
 export CONTRACT_NAME=demo     # 设置链码合约名称
 ```
-## 安装chaincode合约
+## 3. 安装chaincode合约
 可以在同一个客户端命令行下，通过环境变量切换不同的节点和身份，实现在多个节点上安装chaincode
 
-> fabric的chaincode不需要安装在所有节点上，我设定的背书策略要求每个组织选取一个节点安装chaincode就可以了，安装了chaincode的节点就是该chaincode的背书节点了。
+> fabric的chaincode不需要安装在所有节点上，在这里设定背书策略：要求该chaincode的交易需要每个组织的一个节点背书；这样该背书策略要求每个组织选取一个节点安装chaincode就可以了。安装了chaincode的节点就是该chaincode的背书节点了。
 
 将智能合约release代码copy到如下路径： ～/fabric/fabric-samples/chaincode/demo
+
 该路径下文件结构如下：
+
 ```
 chaincode.js  npm-shrinkwrap.json  package.json
 ```
 
-节点docker镜像里面
-### 当前节点peer0.org1.example.com:7051
+### 3.1 当前节点peer0.org1.example.com:7051 安装chaincode
+```
 peer chaincode install -n ${CONTRACT_NAME} -v 1.0 -l node -p /opt/gopath/src/github.com/chaincode/demo/
+```
 
-### peer1.org1.example.com:8051
+### 3.2 节点peer1.org1.example.com 安装chaincode
+```
 CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp CORE_PEER_ADDRESS=peer1.org1.example.com:8051 CORE_PEER_LOCALMSPID="Org1MSP" CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/tls/ca.crt peer chaincode install -n $CONTRACT_NAME -v 1.0 -l node -p /opt/gopath/src/github.com/chaincode/demo
+```
 
-
-### peer0.org2.example.com:9051
+### 3.3 peer0.org2.example.com 安装chaincode
+```
 CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp CORE_PEER_ADDRESS=peer0.org2.example.com:9051 CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt peer chaincode install -n $CONTRACT_NAME -v 1.0 -l node -p /opt/gopath/src/github.com/chaincode/demo
+```
 
-### peer1.org2.example.com:10051
+### 3.4 peer1.org2.example.com 安装chaincode
+```
 CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp CORE_PEER_ADDRESS=peer1.org2.example.com:10051 CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/ca.crt peer chaincode install -n $CONTRACT_NAME -v 1.0 -l node -p /opt/gopath/src/github.com/chaincode/demo
+```
 
-# chaincode实例化
+## 4. chaincode实例化
+```
 peer chaincode instantiate -o orderer.example.com:7050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt -C $CHANNEL_NAME -n $CONTRACT_NAME -l node -v 1.0 -c '{"Args":[]}' -P "AND('Org1MSP.member','Org2MSP.member')"
+```
 
-# 调用链码 - 写入操作
+## 5. 调用链码 - 写入操作
 > 调用合约的add方法，向链上写入一个状态
+```
 peer chaincode invoke -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt --peerAddresses peer0.org1.example.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses peer0.org2.example.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -C $CHANNEL_NAME -n $CONTRACT_NAME -c '{"Args":["add","dffdgh"]}'
+```
 
-# 查询链码
+## 6. 查询链码 - 只读操作
 peer chaincode query -C $CHANNEL_NAME -n $CONTRACT_NAME -c '{"Args":["query","e31729f5bfb1e5eb656343a12c35ad7461ae7e1f14d0c51fa8f923908600f824"]}'
