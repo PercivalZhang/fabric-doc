@@ -3,6 +3,9 @@
 ## setup-fabric.md
 如何搭建fabric环境
 
+## setup-network.md
+如何搭建fabric的测试网络
+
 ## peer-command.md
 如何通过节点命令与网络进行交互
 
