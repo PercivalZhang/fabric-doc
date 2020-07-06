@@ -1,10 +1,10 @@
 # fabric-doc
 
 ## setup-fabric.md
-搭建fabric环境
+如何搭建fabric环境
 
 ## peer-command.md
-节点命令介绍
+如何通过节点命令与网络进行交互
 
 ## contract-evidence.md
 存证合约介绍
