@@ -61,7 +61,7 @@ end
 
 测试网络first-network已经通过dock容器准备好了一个客户端：cli。上面解说提到的身份/证书/目标节点等都预先在docker容器CLI中设定好了。
 
-打开目标文件：*/mnt/fabric/fabric-samples/first-network/docker-compose-cli.yaml*
+打开目标文件：*~/fabric/fabric-samples/first-network/docker-compose-cli.yaml*
 
 如下所示，environment部分设定了当前docker容器的环境变量
 ```
