@@ -9,7 +9,7 @@ docker exec -it cli bash
 
 运行成功后，进入客户端console，提示符如下/opt/gopath/src/github.com/hyperledger/fabric/peer#. 
 
-如没有特殊注明，一下所有命令都是在该提示符下运行。
+如没有特殊注明，以下所有命令都是在该提示符下运行。
 
 ## 2. 设置必要的环境变量
 
@@ -29,7 +29,7 @@ export CONTRACT_NAME=demo     # 设置链码合约名称
 ```
 chaincode.js  npm-shrinkwrap.json  package.json
 ```
-下面列举了在四个不通节点上，安装chaincode的shell命令。可以选取分别从两个组织中选取一个节点进行安装。
+下面列举了在四个不通节点上，安装chaincode的shell命令。可以分别从两个组织中选取一个节点进行安装。
 
 ### 3.1 当前节点peer0.org1.example.com:7051 安装chaincode
 ```
@@ -58,16 +58,36 @@ CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypt
 CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp CORE_PEER_ADDRESS=peer1.org2.example.com:10051 CORE_PEER_LOCALMSPID="Org2MSP" CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/ca.crt peer chaincode install -n $CONTRACT_NAME -v 1.0 -l node -p /opt/gopath/src/github.com/chaincode/demo
 ```
 
-## 4. chaincode实例化
+## 4. chaincode实例化 - 首次安装，需要执行实例化
 ```
 peer chaincode instantiate -o orderer.example.com:7050 --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt -C $CHANNEL_NAME -n $CONTRACT_NAME -l node -v 1.0 -c '{"Args":[]}' -P "AND('Org1MSP.member','Org2MSP.member')"
 ```
 
 ## 5. 调用链码 - 写入操作
-> 调用合约的add方法，向链上写入一个状态
+> 调用合约代码的add方法，向链上写入一个状态
+
+假如在第三部分:安装chaincode中，选择了peer0.org1和peer0.org2两个节点安装chaincode，下面在调用chaincode的接口进行写入操作时，必须向这两个peer节点发起请求。
+
 ```
 peer chaincode invoke -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt --peerAddresses peer0.org1.example.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses peer0.org2.example.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -C $CHANNEL_NAME -n $CONTRACT_NAME -c '{"Args":["add","dffdgh"]}'
 ```
+执行成功后，提示如下：
+```
+2020-07-06 09:35:17.963 UTC [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 001 Chaincode invoke successful. result: status:200 payload:"{\"code\":200,\"data\":{\"txId\":\"06f5b038d5c871cc9156d1dc22cf36b7314f0b6423b9a74496bcbd6993e0b031\"},\"message\":\"state has been added successfully.\"}"
+```
+记住成功提示中的txId的值，在下面的只读查询操作中，我们将会用到它。
 
 ## 6. 查询链码 - 只读操作
+> 调用合约代码的query方法，根据输入的key值，查询对应的状态
+
+```
 peer chaincode query -C $CHANNEL_NAME -n $CONTRACT_NAME -c '{"Args":["query","e31729f5bfb1e5eb656343a12c35ad7461ae7e1f14d0c51fa8f923908600f824"]}'
+```
+找到对应的状态，结果如下：
+```
+{"code":200,"message":"query state successfully.","data":{"state":"dffdgh"}}
+```
+对应状态不存在，提示如下：
+```
+{"code":404,"message":"failed to query state","error":"state with key e31729f5bfb1e5eb656343a12c35ad7461ae7e1f14d0c51fa8f923908600f824 does not exist."}
+```
