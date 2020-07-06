@@ -1,5 +1,8 @@
 # fabric-doc
 
+## setup-fabric.md
+搭建fabric环境
+
 ## peer-command.md
 节点命令介绍
 
