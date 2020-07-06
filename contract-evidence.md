@@ -50,9 +50,8 @@ src
   "start": "fabric-chaincode-node start"  
 },
 "dependencies": {  
-  "fabric-contract-api": "^2.0.0",  
-  "fabric-shim": "^2.1.2",  
-  "winston": "^3.2.1"  
+    "fabric-contract-api": "^2.0.0",
+    "fabric-shim": "^2.0.0"
 },
 ```
 
@@ -115,6 +114,17 @@ export class Depository extends Contract {
 ```typescript
 @Transaction()
 async add(ctx: Context, param: string) { 
+  /*
+   * 示范获取合约接口调用着身份
+   *
+   * 调用cid.getAttributeValue(), 获取用户身份的具体属性值
+   * eg. 获取属性hf.role的值
+   * cid.getAttributeValue('hf.role');
+   *
+   * 调用cid.assertAttributeValue(属性名, 比较的目标值);
+   * eg. 判断属性hf.role的值是否等于'admin'
+   * cid.assertAttributeValue('hf.role', 'admin');
+   */
   // 调用交易上下文ctx.clientIdentity,获取交易提交者的数字身份
   const cid = ctx.clientIdentity;
   
