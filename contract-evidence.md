@@ -66,7 +66,7 @@ export class Depository {
         console.info(ret);
         return shim.success(Buffer.from('Initialized Successfully!'));
     }
-    // 接口方法路由转发
+    // 接口方法路由转发, 使用fabric-shim库，必须实现该方法，实现自定义方法的跳转
     async Invoke(stub) {
         // 获取该类的所有方法和参数
         const ret = stub.getFunctionAndParameters();
@@ -87,11 +87,11 @@ export class Depository {
             return shim.error(err);
         }
     }
-
+    // 自定义接口
     async add(stub, args): Promise<Buffer> {
 
     }
-
+    // 自定义接口
     async query(stub, args): Promise<Buffer> {
 
     }
@@ -113,11 +113,11 @@ shim.start(new Depository());
   * 获取交易提交者的数字身份信息
 
 交易上下文context提供了2个内嵌的元素，这两个元素给开发者提供了丰富的API：
-- ctx.stub
+- stub
 > putState(): 写入状态   
 > getState(): 读取状态   
 > getTxID(): 获取当前交易ID
-- ctx.clientIdentity
+- clientIdentity
 > 获取交易提交者的数字身份，用于接口级别的精确权限控制
 
 在下面的示例中，将展示如何通过交易上下文进行账本状态查询/更新账本状态/获取数字身份。
@@ -125,10 +125,18 @@ shim.start(new Depository());
 ### 如何写入数据
 接下来展示如何向区块链写入一条数据。仍然以上面的代码为例，对接口add进行如下拓展：
 ```typescript
-@Transaction()
-async add(ctx: Context, param: string) { 
-  /*
-   * 示范获取合约接口调用着身份
+async add(stub, args: string[]): Promise<Buffer> { 
+  // 通常会对输入参数的数量做一个数检查，已减少不必要的计算资源浪费
+  if (args.length !== 1) {
+    // 抛出Error，返回失败响应
+    throw new Error('Incorrect number of arguments. Expecting 1');
+  }
+ 
+  // 调用交易上下文的clientIdentity,获取交易提交者的数字身份
+  const cid = new ClientIdentity(stub);
+  
+  /**
+   * 示范合约调用者身份属性验证
    *
    * 调用cid.getAttributeValue(), 获取用户身份的具体属性值
    * eg. 获取属性hf.role的值
@@ -138,21 +146,17 @@ async add(ctx: Context, param: string) {
    * eg. 判断属性hf.role的值是否等于'admin'
    * cid.assertAttributeValue('hf.role', 'admin');
    */
-  // 调用交易上下文ctx.clientIdentity,获取交易提交者的数字身份
-  const cid = ctx.clientIdentity;
-  
-  // 调用数字身份的getAttributeValue(), 获取数字身份中的各种属性值
-  const cidAttrValue = cid.getAttributeValue('customizedRole');
+
             
-  // 调用交易上下文ctx.stub.getTxID(),获取当前交易的交易ID 
-  const txId = ctx.stub.getTxID(); 
+  // 调用stub.getTxID(),获取当前交易的交易ID 
+  const txId = stub.getTxID(); 
   
-  // 交易上下文ctx.stub.putState()
+  // 调用stub.putState()
   // 用交易ID做key，将输入字符串转换为Buffer后，写入到状态数据库 
-  await ctx.stub.putState(txId, Buffer.from(param));  
+  await stub.putState(txId, Buffer.from(args[0]));  
   
   // 返回交易ID 
-  return txId;
+  return Buffer.from(txId);
 }
 ```
 > 链存储的就是各种状态，状态state是一个key-value数据库。key值是字符串类型，具备唯一性；value存储Buffer类型的数据。
@@ -164,22 +168,36 @@ async add(ctx: Context, param: string) {
 ### 如何读取数据
 接下来展示如何从区块链读取一条数据。仍然以上面的代码为例，对接口quey进行如下拓展：
 ```typescript
-@Transaction(false)
-async query(ctx: Context, param: string) {      
-  // 调用交易上下文ctx.getState(), 传入key值，查询对应的状态 
-  const stateAsBytes = await ctx.stub.getState(param);  
+async query(stub, args: string[]): Promise<Buffer> {    
+  // 通常会对输入参数的数量做一个数检查，已减少不必要的计算资源浪费
+  if (args.length !== 1) {
+    // 抛出Error，返回失败响应
+    throw new Error('Incorrect number of arguments. Expecting 1');
+  }
+  // 声明一个结果对象，用于保存结果
+  const result: { [k: string]: any } = {};
+  // 状态的key值
+  const keyOfState = args[0];
+  // 调用交易上下文stub.getState(), 传入key值，查询对应的状态 
+  const stateAsBytes = await stub.getState(keyOfState);  
   // 判断查询的结果是否为空，或者长度为0
   // 返回消息，提示与key对应的状态不存在
   if (!stateAsBytes || stateAsBytes.byteLength === 0) {  
-      console.log(`State with key ${param} does not exist.`);
-      return `state with key ${param} does not exist.`;
+      console.log(`State with key ${keyOfState} does not exist.`);
+      result.code = 404;
+      result.message = 'failed to query state';
+      result.error = `state with key ${keyOfState} does not exist.`;
   } else {  
-    // 否则，与key对应的状态存在，将Buffer转换为字符串返回
-    return stateAsBytes.toString();  
+    // 状态存在
+    result.code = 200;
+    result.message = `query state successfully.`;
+    result.data = { state: stateAsBytes.toString() };
   }
+  console.log('query: OK');
+  return Buffer.from(JSON.stringify(result));
 }  
 ```
-> 在本例子中，通过调用getState()，传入输入参数param作为key，查询对应的状态。
+> 在本例子中，通过调用getState()，传入输入参数args[0]作为key，查询对应的状态。
 >
 >可以将add接口返回的交易ID，作为输入参数传入query接口，进行状态查询。
 
