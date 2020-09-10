@@ -1,9 +1,10 @@
-# root ca和tls ca搭建
+# Root CA和TLS CA搭建
+当前工作目录：/mnt/data/application/Fabric-CA
 
 ## 1. 初始化CA服务器
 **命令格式**：*fabric-ca-server init -b [username]:[passwd] --home [root_dir]*
-- -b: 指定boostrap用户名和密码
-- --home：制定CA服务器根目录
+- [-b]: 指定boostrap用户名和密码
+- [--home]：制定CA服务器根目录
 
 > 假定两个CA服务器Boostrap用户名和密码为: *admin:adminpw*
 
@@ -38,7 +39,7 @@ fabric-ca-server start --home ./tls-ca-server
 ```
 
 ## 3. 启动ca client, 为两个服务器交叉生成各自的TLS证书
-### 3.1 向tls ca server登记root ca服务器的bootsrap用户的tls，生成root ca服务器的tls通信证书
+### 3.1 向TLS CA Server登记Root CA服务器的bootsrap用户的tls，生成Root CA服务器的tls通信证书
 ```
 fabric-ca-client enroll -M ./crypto-config/rootca.baas.huobi.cn/tlsMSP -u http://tlsca.baas.huobi.cn:ht2020@tlsca.baas.huobi.cn:9526 --home ./ca-client --csr.hosts=['rootca.baas.huobi.cn']
 
