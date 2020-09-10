@@ -1,5 +1,8 @@
 # Root CA和TLS CA搭建
 当前工作目录：/mnt/data/application/Fabric-CA
+```
+cd /mnt/data/application/Fabric-CA
+```
 
 ## 1. 初始化CA服务器
 **命令格式**：*fabric-ca-server init -b [username]:[passwd] --home [root_dir]*
