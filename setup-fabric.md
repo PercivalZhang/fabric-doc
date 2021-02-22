@@ -135,7 +135,7 @@ ls
 ```
 当前目录内容如下图所示：
 
-![截屏2020-06-12 上午10.46.33.png](http://note.youdao.com/yws/res/3452/WEBRESOURCE03ce15b675479308c0f38dc35fd2f509)
+![截屏2020-06-12 上午10.46.33.png](https://github.com/PercivalZhang/fabric-doc/blob/master/resource/docker-ps.png)
 
 #### 3.4 安装收尾
 安装结束后，以下二进制程序将被安装bin目录（~/fabric/bin）下：
