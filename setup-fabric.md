@@ -183,7 +183,7 @@ docker images | grep hyperledger
 ```
 镜象列表如下图所示：
 
-![截屏2020-06-11 下午2.37.54.png](https://note.youdao.com/src/WEBRESOURCE68a9363cb2df3b6dab76e5a1325924ec)
+![截屏2020-06-11 下午2.37.54.png](https://github.com/PercivalZhang/fabric-doc/blob/master/resource/docker-ps.png)
 
 
 #### 3.5 其他
