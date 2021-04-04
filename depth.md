@@ -177,3 +177,142 @@ myToken1Amount = myDCToken1Amount * exchangeRateStore1
     }
   }
 ```
+
+# 1.6 获取目标借贷池子的用户资产收据的示例代码
+```
+private async getDebitAndCreditLPTPoolReceipt (
+        pool: Pool,
+        address: string,
+        annualRewardTokenAmount: BigNumber,
+        priceReward: BigNumber,
+        totalAlloc: BigNumber
+    ): Promise<BankReceipt> {
+        let receipt: BankReceipt = null;
+
+        const userInfo = await this.masterChefContract.methods.userInfo(pool.pid, address).call();
+        const pendingReward = await this.masterChefContract.methods.pendingPiggy(pool.pid, address).call();
+
+        const myBalance = new BigNumber(userInfo['amount']);
+
+        if (myBalance.gt(0)) {
+            logger.debug(`getDebitAndCreditLPTPoolReceipt > my balance: ${myBalance.dividedBy(1e18).toNumber().toFixed(8)}`);
+            receipt = {
+                assets: [],
+                balance: 0,
+                miningAPY: '',
+                rType: undefined,
+                ratio: '',
+                reward: undefined,
+            };
+            receipt.reward = {
+                balance: Number.parseFloat(
+                    new BigNumber(pendingReward).dividedBy(Math.pow(10, this.rewardToken.decimals)).toNumber().toFixed(8),
+                ),
+                symbol: this.rewardToken.symbol,
+            };
+            receipt.balance = Number.parseFloat(
+                myBalance.dividedBy(Math.pow(10, 18)).toNumber().toFixed(8),
+            );
+            const myPoolRatio = myBalance.dividedBy(pool.totalDeposit);
+            logger.debug(`getDebitAndCreditLPTPoolReceipt > my ratio in pool: ${myPoolRatio.toNumber().toFixed(8)}`);
+            receipt.ratio = myPoolRatio.toNumber().toFixed(8);
+
+            const totalLPTokens = new BigNumber(await pool.lpt.methods.totalSupply().call());
+
+            const stakedRatio = pool.totalDeposit.dividedBy(totalLPTokens);
+            logger.debug(`getDebitAndCreditLPTPoolReceipt > total staked LP ratio: ${stakedRatio.toNumber().toFixed(8)}`);
+
+            const myLPRatio = myBalance.dividedBy(totalLPTokens);
+            logger.debug(`getDebitAndCreditLPTPoolReceipt > my ratio in LP: ${myLPRatio.toNumber().toFixed(8)}`);
+
+            const poolTokenData = this.poolTokenMap.get(pool.pid);
+            
+            const token0 = poolTokenData.token0;
+            const token1 = poolTokenData.token1;
+            const underlyingToken0 = poolTokenData.underlyingToken0;
+            const underlyingToken1 = poolTokenData.underlyingToken1;
+
+            logger.debug(`getDebitAndCreditLPTPoolReceipt > load dc token 0 contract - ${token0.address}`);
+            const dcToken0Contract = await this.loadContract(token0.address, true, 'token.dc.json');
+
+            logger.debug(`getDebitAndCreditLPTPoolReceipt > load dc token 1 contract - ${token1.address}`);
+            const dcToken1Contract = await this.loadContract(token1.address, true, 'token.dc.json');
+
+            const asset0 = new BigNumber(await pool.swap.methods.balances(0).call());
+            logger.debug(
+                `getCompoundLPPoolReceipt > asset[0] - ${token0.symbol} balance: ${asset0.dividedBy(
+                    Math.pow(10, token0.decimals),
+                ).toNumber().toFixed(4)}`,
+            );
+
+            const asset1 = new BigNumber(await pool.swap.methods.balances(1).call());
+            logger.debug(
+                `getCompoundLPPoolReceipt > asset[1] - ${token1.symbol} balance: ${asset1.dividedBy(Math.pow(10, token1.decimals)).toNumber().toFixed(4)}`,
+            );
+
+            // 在计算underlying token数量的时候，token0的数量一定是原始数值，而不是与其decimals进行换算后的值
+            // 切记！！！！！
+            const exchangeRate0 = new BigNumber(await dcToken0Contract.methods.exchangeRateCurrent().call());
+            logger.debug(`getDebitAndCreditLPTPoolReceipt > ${token0['symbol']} exchange rate: ${exchangeRate0}`);
+            const underlyingAsset0 = asset0.multipliedBy(exchangeRate0).dividedBy(Math.pow(10, 18)).dividedBy(
+                Math.pow(10, underlyingToken0.decimals),
+            );
+            logger.debug(
+                `underlying asset[0] - ${underlyingToken0.symbol} balance: ${underlyingAsset0
+                    .toNumber()
+                    .toFixed(4)}`,
+            );
+
+            const exchangeRate1 = new BigNumber(await dcToken1Contract.methods.exchangeRateCurrent().call());
+            logger.debug(`getDebitAndCreditLPTPoolReceipt > ${token1['symbol']} exchange rate: ${exchangeRate1}`);
+            const underlyingAsset1 = asset1.multipliedBy(exchangeRate1).dividedBy(Math.pow(10, 18)).dividedBy(
+                Math.pow(10, underlyingToken1.decimals),
+            );;
+            logger.debug(
+                `underlying asset[1] - ${underlyingToken1['symbol']} balance: ${underlyingAsset1
+                    .toNumber()
+                    .toFixed(4)}`,
+            );
+
+            const miningRewardValue = annualRewardTokenAmount
+                .multipliedBy(pool.allocPoint)
+                .multipliedBy(priceReward)
+                .dividedBy(totalAlloc);
+            logger.debug(
+                `getLPPoolReceipt > pool yearly mining reward value: ${miningRewardValue.toNumber().toFixed(4)} ${StableCoin.symbol}`,
+            );
+
+            const priceVirtualLPT = new BigNumber(await pool.swap.methods.get_virtual_price().call()).dividedBy(1e18);
+            const totalPoolValue = priceVirtualLPT.multipliedBy(totalLPTokens).dividedBy(1e18);
+            
+            logger.warn(`getDebitAndCreditLPTPoolReceipt > total pool value: ${totalPoolValue.toNumber().toFixed(4)} ${StableCoin.symbol}`);
+
+            const APY = miningRewardValue.multipliedBy(stakedRatio).dividedBy(totalPoolValue);
+            logger.debug(`APY: ${APY.toNumber().toFixed(4)}`);
+            receipt.miningAPY = APY.toNumber().toFixed(4);
+
+            const myUnderlyingAsset0 = underlyingAsset0.multipliedBy(myLPRatio);
+            logger.debug(
+                `getDebitAndCreditLPTPoolReceipt > my underlying asset[0] - ${
+                    underlyingToken0.symbol
+                } balance: ${myUnderlyingAsset0}`,
+            );
+            receipt.assets.push({
+                balance: Number.parseFloat(myUnderlyingAsset0.toString()),
+                symbol: underlyingToken0['symbol'],
+            });
+
+            const myUnderlyingAsset1 = underlyingAsset1.multipliedBy(myLPRatio);
+            logger.debug(
+                `getDebitAndCreditLPTPoolReceipt > my underlying asset[1] - ${
+                    underlyingToken1['symbol']
+                } balance: ${myUnderlyingAsset1}`,
+            );
+            receipt.assets.push({
+                balance: Number.parseFloat(myUnderlyingAsset1.toString()),
+                symbol: underlyingToken1['symbol'],
+            });
+        }
+        return receipt;
+    }
+```
