@@ -135,3 +135,46 @@ myToken1Amount = myDCToken1Amount * exchangeRateStore1
 ## 1.4 池子APY计算逻辑
 
 标准的master chef pool 年华计算，不做阐述。
+
+## 1.5 所有合约地址信息
+```
+"Depth": {
+    "cash": "0x48C859531254F25e57D1C1A8E030Ef0B1c895c27",
+    "master.chef": {
+      "address": "0x59f8ad2495236b25ba95e3161154f0024fbdbdce",
+      "abi": "master.chef.json"
+    },
+    "pool": {
+      "channel": {
+        "lpt": {
+          "address": "0x8b65b86dc3cadca97b50d4757bb8a686e6ea0ce1",
+          "abi": "lp.token.dc.json"
+        },
+        "swap": {
+          "address": "0x1D1cF3b43bC54B7D8e0F763B6b8957F480367834",
+          "abi": "swap.token.dc.json"
+        }
+      },
+      "filda": {
+        "lpt": {
+          "address": "0xb10b752b6ff723ffb25824f381517dc492f69d7e",
+          "abi": "lp.token.dc.json"
+        },
+        "swap": {
+          "address": "0x7b04182d8e907f1c01f14e070eca75f6445a12e1",
+          "abi": "swap.token.dc.json"
+        }
+      },
+      "lendhub": {
+        "lpt": {
+          "address": "0x60FfCeb51D7640A3BdB996Aa2A8b770ca425fd60",
+          "abi": "lp.token.dc.json"
+        },
+        "swap": {
+          "address": "0x07c8689ffc95caf92da7cc2a55bcbe7dafcf0a47",
+          "abi": "swap.token.dc.json"
+        }
+      }
+    }
+  }
+```
