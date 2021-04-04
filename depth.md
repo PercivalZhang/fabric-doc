@@ -11,7 +11,7 @@
 • 用户将HUSD或fHUSD存入Depth（即向Depth提供流动性），可以获得流动性池的交易手续费收益，这部分依赖交易量而变化。
 
 整个过程可以参考下图：
-
+![depth.png](https://github.com/PercivalZhang/fabric-doc/blob/master/resource/depth.png)
 
 ## 1.1 Mining Pool
 
