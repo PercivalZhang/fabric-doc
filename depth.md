@@ -139,7 +139,6 @@ myToken1Amount = myDCToken1Amount * exchangeRateStore1
 ## 1.5 所有合约地址信息
 ```
 "Depth": {
-    "cash": "0x48C859531254F25e57D1C1A8E030Ef0B1c895c27",
     "master.chef": {
       "address": "0x59f8ad2495236b25ba95e3161154f0024fbdbdce",
       "abi": "master.chef.json"
